@@ -39,6 +39,8 @@ var Chem = (function(_Chem) {
     _Chem.resize = function(width, height) {
         updateDims(width,height);
         updateCanvasSize();
+        document.querySelector(".container").style.width=width+"px";
+        document.querySelector(".container").style.height=height+"px";
         updateGlViewport();
     };
 
@@ -48,7 +50,7 @@ var Chem = (function(_Chem) {
     };
 
     _Chem.clear = function() {
-        _Chem.gl.clear(_Chem.gl.COLOR_BUFFER_BIT);
+        _Chem.gl.clear(_Chem.gl.DEPTH_BUFFER_BUT | _Chem.gl.COLOR_BUFFER_BIT);
     };
 
     _Chem.draw = function() {

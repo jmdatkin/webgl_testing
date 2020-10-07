@@ -40,6 +40,10 @@ var Chem = (function(_Chem) {
         _Chem.gl.uniform2fv(getLoc(name),value);
     };
 
+    _Uniform.setMat3fv = function(name,value) {
+        _Chem.gl.uniformMatrix3fv(getLoc(name),false,value);
+    };
+
     _Chem.VertexBuffer = _VertexBuffer;
     _Chem.VertexAttrib = _VertexAttrib;
     _Chem.Uniform = _Uniform;
