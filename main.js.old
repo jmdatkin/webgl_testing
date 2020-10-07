@@ -1,4 +1,17 @@
 window.onload = function() {
+    const getCanvasEl = () => document.getElementById("canv");
+    const gl = getCanvasEl().getContext("webgl");
+    function initCanvasStyle() {
+        getCanvasEl().setAttribute("width",`${window.innerWidth}px`);
+        getCanvasEl().setAttribute("height",`${window.innerHeight}px`);
+    }
+
+    function initGLProps() {
+        gl.clearColor(1.0,1.0,1.0,1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+    }
+    
+
     const width = 0.7;
     const height = 1.7;
     const length = 1.0;
@@ -88,29 +101,50 @@ void main() {
 gl_FragColor = vertexColor;//vec4(a_vertColor,1.0);
 }`;
 
-    console.log(Chem);
+    var shaderProgram = Shader(gl, vsSource, fsSource);
+    console.log(shaderProgram);
 
-    Chem(document.getElementById("canv"));
-    Chem.shader.attachSource(vsSource,fsSource);
-    Chem.vertexBuffer.bufferData(vert);
+    gl.useProgram(shaderProgram);
+     
+    var buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vert2), gl.STATIC_DRAW);
+    //gl.bindBuffer(gl.ARRAY_BUFFER, null);
+//    gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+    var positionLoc = gl.getAttribLocation(shaderProgram, "a_position");
+    var vertColorLoc = gl.getAttribLocation(shaderProgram,"a_vertColor");
 
-    Chem.vertexAttrib.newVertexAttrib("a_position",3,Chem.gl.FLOAT,false,6*4,0);
-    Chem.vertexAttrib.newVertexAttrib("a_vertColor",3,Chem.gl.FLOAT,false,6*4,3*4);
+    var offsetLoc = gl.getUniformLocation(shaderProgram, "u_offset");
+    var rotLoc = gl.getUniformLocation(shaderProgram,"theta");
 
-    Chem.Uniform.setFloat2v("u_offset", [0.0,-1.0]);
-    Chem.Uniform.setFloat("theta", 0.0);
 
-    Chem.shader.useProgram();
+    gl.vertexAttribPointer(positionLoc, 3, gl.FLOAT, true, 6*4, 0);
+    gl.vertexAttribPointer(vertColorLoc, 3, gl.FLOAT, false, 6*4,3*4);
+    gl.enableVertexAttribArray(positionLoc);
+    gl.enableVertexAttribArray(vertColorLoc);
+    
+    gl.enable(gl.DEPTH_TEST);
 
-    Chem.gl.enable(gl.DEPTH_TEST);
+    initCanvasStyle();
+    gl.viewport(0,0,getCanvasEl().width, getCanvasEl().height);
+
+    // document.body.onmousemove = function(e) {
+    //     // console.log(`${e.pageX}, ${e.pageY}`);
+    //     gl.uniform2fv(offsetLoc, [e.pageX/1000, -1*e.pageY/1000]);
+    // };
 
     gl.uniform2fv(offsetLoc, [0,0.-1.0]);
-
-    Chem.Actions.addAction((timestamp) => {
+    
+    function draw(timestamp) {
+        // console.log(timestamp);
         var theta = timestamp/1000;
-        Chem.Uniform.setFloat("theta",theta);
-    });
+        gl.uniform1f(rotLoc, theta);
+        //gl.uniform2fv(offsetLoc, [Math.cos(1.0*scaling),Math.sin(2.0*scaling)]);
+        initGLProps();
+        gl.drawArrays(gl.TRIANGLES,0,18);
+        window.requestAnimationFrame(draw);
+    };
 
-    Chem.Loop.start();
+    window.requestAnimationFrame(draw);
 
 };
