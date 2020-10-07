@@ -7,6 +7,12 @@ window.onload = function() {
     const centerY = 0.0;
     const centerZ = 0.0;
 
+    const vertTest = [
+        -1.5,-0.5,0.0,
+        0.5,-0.5,0.0,
+        0.0,0.5,0.0
+    ];
+
     const vert2 = [
         -width/2, 0.0, length/2, 1.0, 0.0, 0.0,
         width/2, 0.0, length/2, 0.0, 1.0, 0.0,
@@ -58,9 +64,21 @@ window.onload = function() {
         0.0, 0.5, 0.0, 0.0, 0.0, 1.0
     ];
 
+    const testVs = `
+attribute vec3 b_position;
+void main() {
+gl_Position = vec4(b_position,0.0);
+}`
+
+    const testFs = `
+void main() {
+gl_FragColor = vec4(1.0);
+}`
+
 
     //Vertex shader
-    const vsSource = `attribute vec3 a_position;
+    const vsSource = `
+attribute vec3 a_position;
 varying lowp vec4 vertexColor;
 attribute vec3 a_vertColor;
 uniform vec2 u_offset;
@@ -78,7 +96,7 @@ rotVec.y*sin(theta2) + rotVec.z*cos(theta2));
 gl_Position = vec4(rotVec+vec3(u_offset,0.0),1.0);
 vertexColor = vec4(a_vertColor,1.0);
 //vertexColor = gl_Position + vec4(u_offset,0.0,0.0);//vec4(0.5,0.0,0.0,0.1);
-//vertexColor = vec4(0.0,0.5,0.0,1.0);
+//vertexColor = vec4(0.1,0.5,0.0,1.0);
 }`;
 
     //Fragment shader
@@ -88,27 +106,34 @@ void main() {
 gl_FragColor = vertexColor;//vec4(a_vertColor,1.0);
 }`;
 
-    console.log(Chem);
+    Chem.bindCanvas(document.getElementById("canv"));
+    Chem.initGLProps();
 
-    Chem(document.getElementById("canv"));
-    Chem.shader.attachSource(vsSource,fsSource);
-    Chem.vertexBuffer.bufferData(vert);
+    Chem.resize(800,600);
 
-    Chem.vertexAttrib.newVertexAttrib("a_position",3,Chem.gl.FLOAT,false,6*4,0);
-    Chem.vertexAttrib.newVertexAttrib("a_vertColor",3,Chem.gl.FLOAT,false,6*4,3*4);
 
-    Chem.Uniform.setFloat2v("u_offset", [0.0,-1.0]);
-    Chem.Uniform.setFloat("theta", 0.0);
+    Chem.VertexBuffer.init();
+    Chem.VertexBuffer.bufferData(vert2);
 
+    Chem.shader.attachSource(vsSource,fsSource);;
+    //Chem.shader.attachSource(testVs,testFs);
     Chem.shader.useProgram();
+    Chem.VertexAttrib.newVertexAttrib("a_position",3,Chem.gl.FLOAT,true,6*4,0);
 
-    Chem.gl.enable(gl.DEPTH_TEST);
+    Chem.VertexAttrib.newVertexAttrib("a_vertColor",3,Chem.gl.FLOAT,false,6*4,3*4);
+    //var location = Chem.gl.getAttribLocation(Chem.shader.ID, "a_position");
+    //Chem.gl.vertexAttribPointer(location,3,Chem.gl.FLOAT,false,0,0);
+    //Chem.gl.enableVertexAttribArray(location);
 
-    gl.uniform2fv(offsetLoc, [0,0.-1.0]);
 
+    Chem.clear();
+
+    //Chem.Uniform.setFloat2v("u_offset", [0.0,-1.0]);
+    Chem.Uniform.setFloat("theta", 0.0);
     Chem.Actions.addAction((timestamp) => {
         var theta = timestamp/1000;
         Chem.Uniform.setFloat("theta",theta);
+        Chem.Uniform.setFloat2v("u_offset",[Math.sin(timestamp/1000),-0.6]);
     });
 
     Chem.Loop.start();
