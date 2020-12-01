@@ -1,0 +1,3 @@
+[submodule "chem"]
+	path = chem
+	url = https://github.com/jmdatkin/chem.git
